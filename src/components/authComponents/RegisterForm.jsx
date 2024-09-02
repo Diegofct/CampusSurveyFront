@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { register } from "../../api/auth"; // Asegúrate de tener esta función implementada
+import { register } from "../../services/AuthService"; 
+import { setAuthToken } from "../../services/AuthToken"; 
 
 const RegisterForm = () => {
   const [credentials, setCredentials] = useState({ username: "", email: "", password: "" });
@@ -16,9 +17,10 @@ const RegisterForm = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      // Lógica para el registro
-      await register(credentials);
-      navigate("/login"); // Redirigir al login después de registrarse
+      
+      const data = await register(credentials.username, credentials.email, credentials.password);
+      setAuthToken(data.token); 
+      navigate("/login"); 
     } catch (error) {
       setError("Error en el registro: " + error.message);
       console.error("Error en el registro", error);
@@ -125,7 +127,10 @@ const RegisterForm = () => {
 
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-400">¿Ya tienes una cuenta?</p>
-          <a className="text-sm font-medium text-blue-400 hover:text-blue-300 transition duration-300 ease-in-out cursor-pointer" onClick={() => navigate("/login")}>
+          <a
+            className="text-sm font-medium text-blue-400 hover:text-blue-300 transition duration-300 ease-in-out cursor-pointer"
+            onClick={() => navigate("/login")}
+          >
             Inicia sesión
           </a>
         </div>

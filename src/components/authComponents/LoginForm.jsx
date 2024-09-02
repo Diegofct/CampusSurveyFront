@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login } from "../../api/auth";
-import { setAuthToken } from "../../utils/authToken";
+import { login } from "../../services/AuthService";
+import { setAuthToken } from "../../services/AuthToken";
 
 const LoginForm = () => {
   const [credentials, setCredentials] = useState({ username: "", password: "" });
@@ -17,9 +17,9 @@ const LoginForm = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const data = await login(credentials);
-      setAuthToken(data.token);
-      navigate("/survey");
+      const data = await login(credentials.username, credentials.password);
+      setAuthToken(data.token); // Establecer el token en Axios
+      navigate("/survey"); // Redirigir a la página de encuestas
     } catch (error) {
       setError("Login failed: " + error.message);
       console.error("Login failed", error);
@@ -80,14 +80,12 @@ const LoginForm = () => {
             </button>
           </div>
         </form>
-        {/* <div className="mt-6 text-center">
-          <a href="#" className="text-sm text-blue-400 hover:text-blue-300 transition duration-300 ease-in-out">
-            ¿Olvidaste tu contraseña?
-          </a>
-        </div> */}
         <div className="mt-6 text-center">
           <p className="text-sm text-gray-400">¿No tienes una cuenta?</p>
-          <a className="text-sm font-medium text-blue-400 hover:text-blue-300 transition duration-300 ease-in-out cursor-pointer"  onClick={() => navigate("/register")}>
+          <a
+            className="text-sm font-medium text-blue-400 hover:text-blue-300 transition duration-300 ease-in-out cursor-pointer"
+            onClick={() => navigate("/register")}
+          >
             Regístrate ahora
           </a>
         </div>
