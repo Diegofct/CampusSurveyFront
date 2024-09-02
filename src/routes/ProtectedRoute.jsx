@@ -5,9 +5,10 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
 
-//   if (!token  !Array.isArray(allowedRoles)  !allowedRoles.includes(role)) {
-//     return <Navigate to="/login" />;
-//   }
+  // Verifica si hay un token y si el rol es válido
+  if (!token || !Array.isArray(allowedRoles) || !allowedRoles.includes(role)) {
+    return <Navigate to="/login" />;
+  }
 
   return children;
 };
