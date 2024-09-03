@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { login } from "../../services/AuthService";
 import { toastError, toastSuccess } from "../../services/ToastService";
 
+
+
 const LoginForm = () => {
   
   // UseState Hook to store inputs
@@ -101,8 +103,11 @@ const LoginForm = () => {
             Regístrate ahora
           </a>
         </div>
+        
       </div>
+
     </div>
+
   );
 };
 
