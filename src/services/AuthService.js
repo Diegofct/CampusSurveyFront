@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { setAuthToken } from './AuthTokenService';
 
 const API_LOGIN_URL = "http://localhost:8080/auth/login";
 const API_REGISTER_URL = "http://localhost:8080/auth/register"; 
@@ -11,6 +12,9 @@ export const login = async (username, password) => {
     // Almacenar el token y el rol en localStorage
     localStorage.setItem("token", token);
     localStorage.setItem("role", role);
+
+    // Configurar Axios para que use el token en futuras peticiones
+    setAuthToken(token);
 
     return response; // Retornar la respuesta completa
   } catch (error) {
@@ -28,6 +32,9 @@ export const register = async (username, password) => {
     localStorage.setItem("token", token);
     localStorage.setItem("role", role);
 
+    // Configurar Axios para que use el token en futuras peticiones
+    setAuthToken(token);
+
     return { token, role };
   } catch (error) {
     console.error("Error registering", error);
@@ -35,10 +42,15 @@ export const register = async (username, password) => {
   }
 };
 
-
 export const logout = () => {
+  // Remover token y role de localStorage
   localStorage.removeItem('token');
   localStorage.removeItem('role');
+
+  // Remover el token de las futuras solicitudes de Axios
+  setAuthToken(null);
+
+  // Redirigir al usuario a la página de login
   window.location.href = '/login';
 };
 

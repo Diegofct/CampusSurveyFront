@@ -19,24 +19,21 @@ const AdminHome = () => {
     };
 
     return (
-        <section className="main" id="userhome">
-            <div className="userhome-header">
-                <h1>Bienvenido, {name || "Usuario Ejemplo"}!</h1>
+        <section className="ml-64 p-6">
+            <div>
+                <h1 className="text-3xl font-semibold">Bienvenido, {name || "Usuario Ejemplo"}!</h1>
             </div>
-            <div className="userhome-content">
-                <h2>Panel de Administrador Campus Survey</h2>
-                <p>En este panel se encuentra toda la gestion detallada de encuestas de la plataforma Campus Survey</p>
+            <div className="mt-4">
+                <h2 className="text-xl font-medium">Panel de Administrador Campus Survey</h2>
+                <p className="mt-2 text-gray-600">En este panel se encuentra toda la gestión detallada de encuestas de la plataforma Campus Survey</p>
             </div>
-            <div className="userhome-actions">
-                <button className="primary-button" onClick={handleNewSurvey}>
+            <div className="mt-6 space-x-4">
+                <button className="primary-button bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-500" onClick={handleNewSurvey}>
                     Crear nueva encuesta
                 </button>
-                <button className="secondary-button" onClick={handleViewResponses}>
+                <button className="secondary-button bg-gray-600 text-white py-2 px-4 rounded hover:bg-gray-500" onClick={handleViewResponses}>
                     Ver Encuestas
                 </button>
-            </div>
-            <div className="userhome-footer">
-                <p>¿Tienes preguntas? <a href="/unauthorized">Contáctanos</a></p>
             </div>
         </section>
     );

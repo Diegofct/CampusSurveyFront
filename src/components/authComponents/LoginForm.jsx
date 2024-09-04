@@ -12,40 +12,30 @@ const LoginForm = () => {
   const [loginPassword, setLoginPassword] = useState("");
   const navigateTo = useNavigate();
 
-  // Onclick let us get what the user has entered
   const loginUser = async (e) => {
-    e.preventDefault(); // Evita que la página se recargue
+    e.preventDefault();
 
     if (!loginUsername || !loginPassword) {
-      // If credential don't match
       toastError("Please enter both Username and Password!");
       return;
     }
 
-    // Si las credenciales son correctas, hacemos la petición al backend para logear al usuario
     try {
       const response = await login(loginUsername, loginPassword);
 
       if (response) {
-        // Si la autenticación es exitosa
         toastSuccess("You have successfully logged in");
         navigateTo("/home");
       }
     } catch (error) {
       if (error.response && error.response.status === 403) {
-        // Si el servidor devuelve 403 (credenciales incorrectas)
         toastError("Invalid credentials. Please try again.");
       } else if (error.response) {
-        // Si hay otro error desde el servidor
         toastError("An error occurred: " + error.response.data.message);
       } else if (error.request) {
-        // Si no se recibe respuesta del servidor
         toastError("No response from the server. Please try again later.");
       } else {
-        // Si ocurrió un error al configurar la solicitud
-        toastError(
-          "An error occurred while setting up the request. Please try again."
-        );
+        toastError("An error occurred while setting up the request. Please try again.");
       }
     }
   };
