@@ -19,7 +19,7 @@ const UserHome = () => {
     };
 
     return (
-        <section className="main" id="userhome">
+        <section className="ml-64 p-6">
             <div className="userhome-header">
                 <h1>Hola, {name || "Usuario Ejemplo"}!</h1>
             </div>

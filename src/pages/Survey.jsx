@@ -1,10 +1,11 @@
 import React from "react";
+import SurveyCreator from "../components/SurveyManagment/SurveyList";
 
 const Survey = () => {
   return (
     <div>
       <h1 className="text-2xl font-bold">Survey Page</h1>
-      {/* Aquí irá el código relacionado con la lógica y visualización de encuestas */}
+      <SurveyCreator />
     </div>
   );
 };
