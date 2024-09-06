@@ -1,53 +1,89 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { createChapter } from '../../services/ChapterService';
 import QuestionForm from '../Question/QuestionForm';
 
-const ChapterForm = ({ chapter, chapters, setChapters, chapterIndex }) => {
-  const [title, setTitle] = useState(chapter.title);
+const ChapterForm = ({ surveyId, onChapterCreated }) => {
+  const [chapter, setChapter] = useState({ chapterNumber: '', chapterTitle: '' });
+  const [createdChapter, setCreatedChapter] = useState(null);
+  const [showQuestionForm, setShowQuestionForm] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Petición DELETE para eliminar un capítulo
-  const handleDeleteChapter = async () => {
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setChapter({ ...chapter, [name]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      await axios.delete(`http://localhost:8080/api/chapters/${chapter.id}`);
-      const updatedChapters = chapters.filter(c => c.id !== chapter.id);  // Filtrar capítulos para eliminar el seleccionado
-      setChapters(updatedChapters);  // Actualizar el estado
+      const newChapter = await createChapter(surveyId, chapter);
+      setCreatedChapter(newChapter);
+      setChapter({ chapterNumber: '', chapterTitle: '' });
+      setError(null);
+      if (onChapterCreated) {
+        onChapterCreated(newChapter);
+      }
     } catch (error) {
-      console.error('Error deleting chapter:', error);
+      setError(error.message);
     }
   };
 
   return (
-    <div className="p-4 bg-gray-100 mt-4 rounded">
-      {/* Título del capítulo */}
-      <input
-        type="text"
-        className="w-full p-2 border border-gray-300 rounded"
-        placeholder="Chapter Title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
-      
-      {/* Botón para eliminar el capítulo */}
-      <button
-        className="mt-2 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-        onClick={handleDeleteChapter}
-      >
-        Delete Chapter
-      </button>
-      
-      {/* Renderizar las preguntas asociadas */}
-      <div className="mt-4">
-        {chapter.questions.map((question, questionIndex) => (
-          <QuestionForm
-            key={questionIndex}
-            question={question}
-            chapterIndex={chapterIndex}
-            questionIndex={questionIndex}
-            chapters={chapters}
-            setChapters={setChapters}
-          />
-        ))}
-      </div>
+    <div className="bg-white p-6 rounded-lg shadow-lg">
+      {error && <p className="text-red-500">{error}</p>}
+
+      {!createdChapter && (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-gray-700">Número del Capítulo</label>
+            <input
+              type="text"
+              name="chapterNumber"
+              value={chapter.chapterNumber}
+              onChange={handleInputChange}
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm"
+              placeholder="Ingrese el número del capítulo"
+              required
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-sm font-semibold text-gray-700">Título del Capítulo</label>
+            <input
+              type="text"
+              name="chapterTitle"
+              value={chapter.chapterTitle}
+              onChange={handleInputChange}
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm"
+              placeholder="Ingrese el título del capítulo"
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+          >
+            Crear Capítulo
+          </button>
+        </form>
+      )}
+
+      {createdChapter && (
+        <div className="mt-6">
+          <h4 className="text-lg font-semibold text-gray-700">Capítulo Creado</h4>
+          <p className="text-gray-800">Capítulo {createdChapter.chapterNumber}: {createdChapter.chapterTitle}</p>
+
+          <button
+            onClick={() => setShowQuestionForm(true)}
+            className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 mt-4"
+          >
+            Añadir Preguntas al Capítulo
+          </button>
+
+          {showQuestionForm && <QuestionForm chapterId={createdChapter.id} />}
+        </div>
+      )}
     </div>
   );
 };

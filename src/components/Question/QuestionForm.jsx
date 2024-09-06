@@ -1,55 +1,63 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import AnswerForm from '../Answer/AnswerForm';
+// import { createQuestion } from '../../services/QuestionService';
 
-const QuestionForm = ({ question, chapterIndex, questionIndex, chapters, setChapters }) => {
-  const [questionText, setQuestionText] = useState(question.text);
+const QuestionForm = ({ chapterId }) => {
+  const [question, setQuestion] = useState({ text: '', options: '' });
+  const [error, setError] = useState(null);
 
-  // Petición PUT para actualizar una pregunta
-  const handleUpdateQuestion = async () => {
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setQuestion({ ...question, [name]: value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const updatedQuestion = { ...question, text: questionText };
-      const response = await axios.put(`http://localhost:8080/api/questions/${question.id}`, updatedQuestion);
-      const updatedChapters = [...chapters];
-      updatedChapters[chapterIndex].questions[questionIndex] = response.data;  // Actualizar el estado
-      setChapters(updatedChapters);
+      await createQuestion({ ...question, chapterId }); // Asociar la pregunta al capítulo
+      alert('Pregunta creada con éxito');
+      setQuestion({ text: '', options: '' }); // Limpiar formulario
     } catch (error) {
-      console.error('Error updating question:', error);
+      setError(error.message);
     }
   };
 
   return (
-    <div className="mt-4 p-4 bg-white shadow-sm rounded">
-      {/* Texto de la pregunta */}
-      <input
-        type="text"
-        className="w-full p-2 border border-gray-300 rounded"
-        placeholder="Type your question"
-        value={questionText}
-        onChange={(e) => setQuestionText(e.target.value)}
-      />
-      {/* Botón para actualizar la pregunta */}
-      <button
-        className="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        onClick={handleUpdateQuestion}
-      >
-        Update Question
-      </button>
-
-      {/* Renderizar respuestas asociadas */}
-      <div className="mt-4">
-        {question.answers.map((answer, answerIndex) => (
-          <AnswerForm
-            key={answerIndex}
-            answer={answer}
-            chapterIndex={chapterIndex}
-            questionIndex={questionIndex}
-            answerIndex={answerIndex}
-            chapters={chapters}
-            setChapters={setChapters}
+    <div className="bg-white p-6 rounded-lg shadow-lg">
+      {error && <p className="text-red-500">{error}</p>}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-gray-700">Texto de la Pregunta</label>
+          <input
+            type="text"
+            name="text"
+            value={question.text}
+            onChange={handleInputChange}
+            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+            placeholder="Ingrese la pregunta"
+            required
           />
-        ))}
-      </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-semibold text-gray-700">Opciones (separadas por comas)</label>
+          <input
+            type="text"
+            name="options"
+            value={question.options}
+            onChange={handleInputChange}
+            className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg"
+            placeholder="Ingrese las opciones"
+            required
+          />
+        </div>
+
+        <button
+          type="submit"
+          className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+        >
+          Crear Pregunta
+        </button>
+      </form>
     </div>
   );
 };

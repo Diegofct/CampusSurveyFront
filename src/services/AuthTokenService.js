@@ -1,5 +1,9 @@
 import axios from 'axios';
 
+export const getAuthToken = () => {
+  return localStorage.getItem('token'); 
+};
+
 export const setAuthToken = (token) => {
   if (token) {
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;

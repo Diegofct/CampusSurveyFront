@@ -1,128 +1,173 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { createSurvey, fetchSurveys } from '../../services/SurveyService';
+import { FaEdit, FaTrash } from 'react-icons/fa';
 import ChapterForm from '../Chapter/ChapterForm';
 
-const SurveyContainer = () => {
+const SurveyForm = () => {
+  const [survey, setSurvey] = useState({ name: '', description: '' });
   const [surveys, setSurveys] = useState([]);
-  const [selectedSurveyId, setSelectedSurveyId] = useState(null);
-  const [chapters, setChapters] = useState([]);
+  const [selectedSurvey, setSelectedSurvey] = useState(null);
+  const [editingSurvey, setEditingSurvey] = useState(null);
+  const [showChapterForm, setShowChapterForm] = useState(false);
 
-  // Petición GET para cargar encuestas cuando el componente se monte
   useEffect(() => {
-    const fetchSurveys = async () => {
+    const loadSurveys = async () => {
       try {
-        const response = await axios.get('http://localhost:8080/api/survey');
-        setSurveys(response.data);
+        const surveys = await fetchSurveys();
+        setSurveys(surveys);
       } catch (error) {
         console.error('Error fetching surveys:', error);
       }
     };
-    fetchSurveys();
+
+    loadSurveys();
   }, []);
 
-  // Petición GET para cargar capítulos cuando se seleccione una encuesta
-  useEffect(() => {
-    if (selectedSurveyId) {
-      const fetchChapters = async () => {
-        try {
-          const response = await axios.get(`http://localhost:8080/api/survey/${selectedSurveyId}/chapters`);
-          setChapters(response.data);
-        } catch (error) {
-          console.error('Error fetching chapters:', error);
-        }
-      };
-      fetchChapters();
-    } else {
-      // Si no hay encuesta seleccionada, limpiar los capítulos
-      setChapters([]);
-    }
-  }, [selectedSurveyId]);
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setSurvey({ ...survey, [name]: value });
+  };
 
-  // Petición POST para añadir una nueva encuesta
-  const handleAddSurvey = async () => {
+  const handleSubmitSurvey = async (e) => {
+    e.preventDefault();
     try {
-      const newSurvey = {
-        title: 'New Survey' // Puedes ajustar el título según tus necesidades
-      };
-      const response = await axios.post('http://localhost:8080/api/survey', newSurvey);
-      setSurveys([...surveys, response.data]); // Añadir la nueva encuesta al estado
+      if (editingSurvey) {
+        await updateSurvey(editingSurvey.id, survey.name, survey.description);
+        alert('Survey updated successfully!');
+        setEditingSurvey(null);
+      } else {
+        await createSurvey(survey.name, survey.description);
+        alert('Survey created successfully!');
+      }
+      setSurvey({ name: '', description: '' });
+      const updatedSurveys = await fetchSurveys();
+      setSurveys(updatedSurveys);
+      setSelectedSurvey(null);
+      setShowChapterForm(false);
     } catch (error) {
-      console.error('Error creating survey:', error);
+      console.error('Error saving survey:', error);
+      alert('Failed to save survey');
     }
   };
 
-  // Petición POST para añadir un nuevo capítulo
-  const handleAddChapter = async () => {
-    if (!selectedSurveyId) {
-      alert('Please select a survey before adding a chapter.');
-      return;
-    }
+  const handleSelectSurvey = (survey) => {
+    setSelectedSurvey(survey);
+    setShowChapterForm(true);
+  };
 
+  const handleEditSurvey = (survey) => {
+    setSurvey({ name: survey.name, description: survey.description });
+    setEditingSurvey(survey);
+  };
+
+  const handleDeleteSurvey = async (surveyId) => {
     try {
-      const newChapter = {
-        title: 'New Chapter', // Aquí puedes añadir el título y las preguntas si lo necesitas
-        questions: [],
-        surveyId: selectedSurveyId // Asociar el capítulo con la encuesta seleccionada
-      };
-      const response = await axios.post(`http://localhost:8080/api/survey/${selectedSurveyId}/chapters`, newChapter);
-      setChapters([...chapters, response.data]); // Añadir el nuevo capítulo al estado
+      await deleteSurvey(surveyId);
+      alert('Survey deleted successfully!');
+      const updatedSurveys = await fetchSurveys();
+      setSurveys(updatedSurveys);
+      setSelectedSurvey(null);
     } catch (error) {
-      console.error('Error creating chapter:', error);
+      console.error('Error deleting survey:', error);
+      alert('Failed to delete survey');
     }
+  };
+
+  const handleBackToSurveys = () => {
+    setSelectedSurvey(null);
+    setShowChapterForm(false);
   };
 
   return (
-    <div className="container ml-64 p-5 bg-white shadow-lg rounded-md">
-      {/* Dropdown para seleccionar una encuesta */}
-      <div className="mb-4">
-        <label htmlFor="survey-select" className="block mb-2 text-sm font-medium text-gray-700">Select a Survey:</label>
-        <select
-          id="survey-select"
-          className="border p-2 rounded w-full"
-          value={selectedSurveyId || ''}
-          onChange={(e) => setSelectedSurveyId(e.target.value)}
-        >
-          <option value="" disabled>Select a survey</option>
-          {surveys.map((survey) => (
-            <option key={survey.id} value={survey.id}>
-              {survey.title}
-            </option>
-          ))}
-        </select>
-      </div>
+    <div className="container mx-auto p-4">
+      {!selectedSurvey ? (
+        <>
+          <h1 className="text-3xl font-extrabold mb-6 text-center text-gray-800">Crear Encuesta</h1>
 
-      {/* Mostrar los capítulos de la encuesta seleccionada */}
-      {chapters.length > 0 ? (
-        chapters.map((chapter, index) => (
-          <ChapterForm
-            key={index}
-            chapter={chapter}
-            chapters={chapters}
-            setChapters={setChapters}
-            chapterIndex={index}
-          />
-        ))
+          <form onSubmit={handleSubmitSurvey} className="bg-white p-6 rounded-lg shadow-lg max-w-lg mx-auto space-y-4">
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-gray-700">Nombre de la encuesta</label>
+              <input
+                type="text"
+                name="name"
+                value={survey.name}
+                onChange={handleInputChange}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm"
+                placeholder="Ingrese el nombre de la encuesta"
+                required
+              />
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-sm font-semibold text-gray-700">Descripción</label>
+              <textarea
+                name="description"
+                value={survey.description}
+                onChange={handleInputChange}
+                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm"
+                placeholder="Ingrese la descripción de la encuesta"
+                required
+              ></textarea>
+            </div>
+
+            <button
+              type="submit"
+              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200"
+            >
+              {editingSurvey ? 'Actualizar Encuesta' : 'Crear Encuesta'}
+            </button>
+          </form>
+
+          {surveys.length > 0 && (
+            <div className="mt-8 bg-white p-6 rounded-lg shadow-lg max-w-lg mx-auto">
+              <h2 className="text-2xl font-semibold mb-4 text-gray-800">Encuestas Disponibles</h2>
+              <ul className="space-y-2">
+                {surveys.map((s) => (
+                  <li key={s.id} className="flex items-center justify-between bg-gray-50 p-4 rounded-lg shadow-sm">
+                    <span
+                      className="text-blue-600 hover:underline cursor-pointer"
+                      onClick={() => handleSelectSurvey(s)}
+                    >
+                      {s.name}
+                    </span>
+                    <div className="flex space-x-2">
+                      <button
+                        // onClick={() => handleEditSurvey(s)}
+                        className="text-yellow-500 hover:text-yellow-600"
+                      >
+                        <FaEdit className="w-5 h-5" />
+                      </button>
+                      <button
+                        // onClick={() => handleDeleteSurvey(s.id)}
+                        className="text-red-500 hover:text-red-600"
+                      >
+                        <FaTrash className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
       ) : (
-        selectedSurveyId && <p>No chapters found for this survey.</p>
+        <div className="bg-white p-6 rounded-lg shadow-lg max-w-lg mx-auto">
+          <h4 className="text-xl font-semibold mb-4 text-gray-800">Encuesta Seleccionada</h4>
+          <div className="mb-4">
+            <h2 className="text-3xl font-semibold mb-2 text-gray-800">{selectedSurvey.name}</h2>
+            <p className="text-gray-600">{selectedSurvey.description}</p>
+          </div>
+          {showChapterForm && <ChapterForm surveyId={selectedSurvey.id} />}
+          <button
+            onClick={handleBackToSurveys}
+            className="mt-10 bottom-4 right-4 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-200"
+          >
+            Volver a la lista
+          </button>
+        </div>
       )}
-
-      {/* Botón para añadir un nuevo capítulo */}
-      <button
-        className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-        onClick={handleAddChapter}
-      >
-        Add a Chapter
-      </button>
-
-      {/* Botón para añadir una nueva encuesta */}
-      <button
-        className="mt-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-        onClick={handleAddSurvey}
-      >
-        Add a Survey
-      </button>
     </div>
   );
 };
 
-export default SurveyContainer;
+export default SurveyForm;

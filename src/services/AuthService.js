@@ -43,18 +43,13 @@ export const register = async (username, password) => {
 };
 
 export const logout = () => {
-  // Remover token y role de localStorage
   localStorage.removeItem('token');
   localStorage.removeItem('role');
-
-  // Remover el token de las futuras solicitudes de Axios
   setAuthToken(null);
-
-  // Redirigir al usuario a la página de login
   window.location.href = '/login';
 };
 
 export const getToken = () => localStorage.getItem("token");
 export const getRole = () => localStorage.getItem("role");
-export const getName = () => localStorage.getItem("userfullname");
+export const getName = () => localStorage.getItem("username");
 export const getEmail = () => localStorage.getItem("email");
